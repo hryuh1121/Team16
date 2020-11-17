@@ -1,0 +1,16 @@
+*.lib
+*.obj
+*.cmd
+*.lik
+*.log
+*.tlog
+*.idb
+*.pdb
+*.suo
+*.pch
+*.ipch
+*.iobj
+*.ipdb
+*.cso
+*.exe
+*.enc
