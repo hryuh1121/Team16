@@ -21,7 +21,7 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input)
 
 
 	skydome = Object3d::Create({ 0,0,0 });
-	skydome->SetModel(ground);
+	skydome->SetModel(skyModel);
 	
 
 }
@@ -29,7 +29,7 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input)
 void GamePlay::Update()
 {
 	player->Update();
-	//skydome->Update();
+	skydome->Update();
 
 
 
