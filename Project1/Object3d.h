@@ -90,12 +90,16 @@ public:
 	//スケールセット
 	void SetScale(XMFLOAT3 scale) { this->scale = scale; }
 
+	const XMFLOAT3& GetRotation() { return rotation; }
+
+	void SetRotation(XMFLOAT3 rotation) { this->rotation = rotation; }
+
 private:
 
 	Model* model = nullptr;
 	ComPtr<ID3D12Resource> constBuffB0; // 定数バッファ
 	XMFLOAT4 color = { 1,1,1,1 };//色
-	XMFLOAT3 scale = { 1,1,1 };//ローカルスケール
+	XMFLOAT3 scale = { 5,1,100 };//ローカルスケール
 	XMFLOAT3 rotation = { 0,0,0 };//X,Y,Z軸周りのローカル回転角
 	XMFLOAT3 position = { 0,0,0 };//ローカル座標
 	XMMATRIX matWorld;//ローカルワールド変換行列

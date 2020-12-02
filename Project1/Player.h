@@ -3,6 +3,7 @@
 #include "Sprite.h"
 #include "Input.h"
 
+class Bullet;
 class Player
 {
 private: // エイリアス
@@ -13,6 +14,8 @@ private: // エイリアス
 	using XMFLOAT3 = DirectX::XMFLOAT3;
 	using XMFLOAT4 = DirectX::XMFLOAT4;
 	using XMMATRIX = DirectX::XMMATRIX;
+
+	Bullet* bullet;
 public:
 	Player();
 	~Player();
@@ -26,6 +29,9 @@ public:
 	//描画
 	void Draw();
 
+	//プレイヤー攻撃
+	void playerShot();
+
 private:
 	//プレイヤーの移動
 	void playerMove();
@@ -38,6 +44,7 @@ private://メンバ変数
 	Input* input = nullptr;
 	Model* triangleModel = nullptr;
 
+	bool flag = false;
 	float texNumber = 0;
 	XMFLOAT3 position = { 0,0,0 };//ローカル座標
 

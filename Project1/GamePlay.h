@@ -5,6 +5,8 @@
 #include "Object3d.h"
 #include "Player.h"
 #include "Model.h"
+#include"Enemy.h"
+#include"Bullet.h"
 
 class GamePlay :public Scene
 {
@@ -23,6 +25,8 @@ private:
 	Input* input = nullptr;
 
 	Player* player = nullptr;
+	Enemy* enemy = nullptr;
+
 	Object3d* skydome = nullptr;
 	Object3d* triangle = nullptr;
 

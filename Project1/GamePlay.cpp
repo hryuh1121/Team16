@@ -16,11 +16,14 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input)
 
 	player->Initialize(input);
 
+	enemy = new Enemy();
+	enemy->Initialize();
+
 	skyModel = Model::CreateFromOBJ(0,"skydome");
 	ground = Model::CreateFromOBJ(2, "ground");
 
 
-	skydome = Object3d::Create({ 0,0,0 });
+	skydome = Object3d::Create({ 0,0,9200 });
 	skydome->SetModel(skyModel);
 	
 
@@ -29,6 +32,7 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input)
 void GamePlay::Update()
 {
 	player->Update();
+	enemy->Update();
 	skydome->Update();
 
 
@@ -56,6 +60,7 @@ void GamePlay::Draw()
 	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
 	Object3d::PreDraw(cmdList);
 	player->Draw();
+	enemy->Draw();
 	skydome->Draw();
 	Object3d::PostDraw();
 }
@@ -64,6 +69,7 @@ void GamePlay::Release()
 {
 	//‰ğ•úˆ—
 	safe_delete(player);
+	safe_delete(enemy);
 	safe_delete(skydome);
 	safe_delete(skyModel);
 	safe_delete(ground);
