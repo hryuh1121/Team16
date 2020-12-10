@@ -4,13 +4,14 @@
 #include "SafeDelete.h"
 #include "Camera.h"
 
-void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input)
+void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
 {
 	assert(input);
 	assert(dxCommon);
+	assert(audio);
 	this->input = input;
 	this->dxCommon = dxCommon;
-
+	this->audio = audio;
 
 	player = new Player();
 
@@ -35,7 +36,10 @@ void GamePlay::Update()
 	enemy->Update();
 	skydome->Update();
 
-
+	if (input->TriggerKey(DIK_A))
+	{
+		audio->PlayWave("Resources/Alarm01.wav");
+	}
 
 	//// ƒJƒƒ‰ˆÚ“®
 	//if (input->PushKey(DIK_W) || input->PushKey(DIK_S) || input->PushKey(DIK_D) || input->PushKey(DIK_A))

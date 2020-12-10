@@ -3,7 +3,7 @@
 #include <cassert>
 #include "SafeDelete.h"
 
-void Title::Initialize(DirectXCommon* dxCommon, Input* input)
+void Title::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
 {
 	assert(input);
 	assert(dxCommon);

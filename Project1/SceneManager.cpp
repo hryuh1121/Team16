@@ -45,10 +45,10 @@ void SceneManager::LoadScene(std::string sceneName)
 
 }
 
-void SceneManager::Update(DirectXCommon* dxCommon, Input* input)
+void SceneManager::Update(DirectXCommon* dxCommon, Input* input,Audio* audio)
 {
 	//シーンを更新する
-	SceneUpdate(dxCommon,input);
+	SceneUpdate(dxCommon,input,audio);
 
 }
 
@@ -60,14 +60,14 @@ void SceneManager::Draw()
 }
 
 //シーンの更新処置
-void SceneManager::SceneUpdate(DirectXCommon* dxCommon,Input* input)
+void SceneManager::SceneUpdate(DirectXCommon* dxCommon,Input* input,Audio* audio)
 {
 	if (!_currentScene)
 		return;
 
 	//初期化
 	if (_state == SceneState::Initialize) {
-		_currentScene->Initialize(dxCommon,input);
+		_currentScene->Initialize(dxCommon,input,audio);
 		_state = SceneState::Update;
 	}
 

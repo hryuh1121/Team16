@@ -11,8 +11,8 @@
 #include "Result.h"
 #include "Camera.h"
 
-#include "ModelLoder.h"
 #include "Model.h"
+#include "Audio.h"
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -20,6 +20,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	WinApp* win = nullptr;
 	DirectXCommon* dxCommon = nullptr;
 	Input* input = nullptr;
+	Audio* audio = nullptr;
 
 	// ゲームウィンドウの作成
 	win = new WinApp();
@@ -38,6 +39,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 	// スプライト静的初期化
 	if (!Sprite::StaticInitialize(dxCommon->GetDevice(), WinApp::window_width, WinApp::window_height)) {
+		assert(0);
+		return 1;
+	}
+
+	// オーディオの初期化
+	audio = new Audio();
+	if (!audio->Initialize()) {
 		assert(0);
 		return 1;
 	}
@@ -81,7 +89,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		
 
 		//シーン更新
-		SceneManager::Instance().Update(dxCommon,input);
+		SceneManager::Instance().Update(dxCommon,input,audio);
 #pragma region 描画前
 
 

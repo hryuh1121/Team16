@@ -4,7 +4,7 @@
 class Result :public Scene
 {
 public:
-	void Initialize(DirectXCommon* dxCommon, Input* input);
+	void Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio);
 
 	void Update();
 

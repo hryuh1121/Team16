@@ -3,7 +3,7 @@
 #include <cassert>
 
 
-void Result::Initialize(DirectXCommon* dxCommon, Input* input)
+void Result::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
 {
 	assert(input);
 	assert(dxCommon);

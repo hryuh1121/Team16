@@ -1,13 +1,14 @@
 #pragma once
 #include "Input.h"
 #include "DirectXCommon.h"
+#include "Audio.h"
 
 //シーン基底クラス
 class Scene
 {
 public:
 	//初期化
-	virtual void Initialize(DirectXCommon* dxCommon, Input* input) = 0;
+	virtual void Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio) = 0;
 
 	//更新
 	virtual void Update() = 0;

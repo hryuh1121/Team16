@@ -39,7 +39,7 @@ public:
 	void LoadScene(std::string sceneName);
 
 	//更新処理
-	void Update(DirectXCommon* dxCommon, Input* input);
+	void Update(DirectXCommon* dxCommon, Input* input, Audio* audio);
 
 	//描画処理
 	void Draw();
@@ -47,7 +47,7 @@ public:
 
 private:
 	//シーンの更新処理
-	void SceneUpdate(DirectXCommon* dxCommon,Input* input);
+	void SceneUpdate(DirectXCommon* dxCommon,Input* input,Audio* audio);
 
 	//次のシーンがあるか
 	void NextScene();
