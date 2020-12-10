@@ -22,12 +22,10 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
 
 	skyModel = Model::CreateFromOBJ(0,"skydome");
 	ground = Model::CreateFromOBJ(2, "ground");
+	mikuModel = Model::CreateFromPMD(3, "Model/‰‰¹ƒ~ƒN.pmd");//PMD“Ç‚Ýž‚Ý
 
-
-	skydome = Object3d::Create({ 0,0,9200 });
-	skydome->SetModel(skyModel);
-	
-
+	skydome = Object3d::Create({ 0,0,9200 },skyModel);
+	miku = Object3d::Create({ 0,0,0 }, mikuModel);
 }
 
 void GamePlay::Update()
@@ -35,8 +33,9 @@ void GamePlay::Update()
 	player->Update();
 	enemy->Update();
 	skydome->Update();
+	miku->Update();
 
-	if (input->TriggerKey(DIK_A))
+	if (input->TriggerKey(DIK_K))
 	{
 		audio->PlayWave("Resources/Alarm01.wav");
 	}
@@ -66,6 +65,7 @@ void GamePlay::Draw()
 	player->Draw();
 	enemy->Draw();
 	skydome->Draw();
+	miku->Draw();
 	Object3d::PostDraw();
 }
 
@@ -77,4 +77,6 @@ void GamePlay::Release()
 	safe_delete(skydome);
 	safe_delete(skyModel);
 	safe_delete(ground);
+	safe_delete(miku);
+	safe_delete(mikuModel);
 }

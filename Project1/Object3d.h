@@ -34,7 +34,7 @@ public:
 	static void PreDraw(ID3D12GraphicsCommandList* cmdList);
 
 	//3Dオブジェクト生成
-	static Object3d* Create(XMFLOAT3 position);
+	static Object3d* Create(XMFLOAT3 position,Model* model);
 	
 
 	//描画後処理
@@ -66,9 +66,10 @@ public:
 	bool InitializeGraphicsPipeline(const LPCWSTR& vertexShadername, const LPCSTR& vsmain,
 		const LPCWSTR& pixelShadername, const LPCSTR& psmain);
 
-	Object3d(XMFLOAT3 position);
+	bool PMDInitilizeGraphicsPipeline();
 
-	void SetModel(Model* model);
+	Object3d(XMFLOAT3 position,Model* model);
+
 
 	void SetShader(const LPCWSTR& vertexShadername, const LPCSTR& vsmain,
 		const LPCWSTR& pixelShadername, const LPCSTR& psmain);

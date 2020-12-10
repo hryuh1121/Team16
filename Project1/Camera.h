@@ -12,8 +12,7 @@ private:
 	using XMFLOAT4 = DirectX::XMFLOAT4;
 	using XMMATRIX = DirectX::XMMATRIX;
 
-	// 視点座標
-	static XMFLOAT3 eye;
+	
 	// 注視点座標
 	static XMFLOAT3 target;
 	// 上方向ベクトル
@@ -43,4 +42,6 @@ public:
 	static XMMATRIX matView;
 	// 射影行列
 	static XMMATRIX matProjection;
+	// 視点座標
+	static XMFLOAT3 eye;
 };

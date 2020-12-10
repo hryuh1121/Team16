@@ -20,17 +20,16 @@ void Player::Initialize(Input* input)
 {
 	this->input = input;
 
+	
 	triangleModel = Model::CreateFromOBJ(1,"triangle_mat");
 
 	//実体生成
-	player = Object3d::Create({ 0,0,0 });
+	//生成時にモデルデータも入れる
+	player = Object3d::Create({ 0,0,0 },triangleModel);
 	//スケール初期値
 	XMFLOAT3 scale = player->GetScale();
 	scale = {20,10,20};
 	player->SetScale(scale);
-	
-
-	player->SetModel(triangleModel);
 }
 
 void Player::Update()

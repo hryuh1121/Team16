@@ -17,13 +17,12 @@ void Enemy::Initialize()
 {
 	model = Model::CreateFromOBJ(3, "triangle_mat2");
 
-	enemy = Object3d::Create({ 0,0,800 });
+	enemy = Object3d::Create({ 0,0,800 },model);
 
 	XMFLOAT3 scale = enemy->GetScale();
 	scale = { 20,20,20 };
 	enemy->SetScale(scale);
 
-	enemy->SetModel(model);
 }
 
 void Enemy::Update()

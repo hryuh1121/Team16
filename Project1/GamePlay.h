@@ -31,11 +31,12 @@ private:
 
 	Object3d* skydome = nullptr;
 	Object3d* triangle = nullptr;
-
+	Object3d* miku = nullptr;
 
 	Model* skyModel = nullptr;
 	Model* triangleModel = nullptr;
 	Model* ground = nullptr;
+	Model* mikuModel = nullptr;
 
 	bool isEnd = false;
 };

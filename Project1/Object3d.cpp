@@ -54,10 +54,10 @@ void Object3d::PreDraw(ID3D12GraphicsCommandList * cmdList)
 	//cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-Object3d* Object3d::Create(XMFLOAT3 position)
+Object3d* Object3d::Create(XMFLOAT3 position,Model* model)
 {
 	// 3Dオブジェクトのインスタンスを生成
-	Object3d* object3d = new Object3d(position);
+	Object3d* object3d = new Object3d(position,model);
 	if (object3d == nullptr) {
 		return nullptr;
 	}
@@ -400,15 +400,137 @@ bool Object3d::InitializeGraphicsPipeline(const LPCWSTR & vertexShadername, cons
 	return true;
 }
 
-Object3d::Object3d(XMFLOAT3 position)
+bool Object3d::PMDInitilizeGraphicsPipeline()
 {
-	this->position = position;
+	HRESULT result;
+
+	ComPtr<ID3DBlob> vsBlob = nullptr;
+	ComPtr<ID3DBlob> psBlob = nullptr;
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	result = D3DCompileFromFile(L"BasicVertexShader.hlsl",
+		nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"BasicVS", "vs_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0, &vsBlob, &errorBlob);
+	if (FAILED(result)) {
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+
+	result = D3DCompileFromFile(L"BasicPixelShader.hlsl",
+		nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"BasicPS", "ps_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0, &psBlob, &errorBlob);
+	if (FAILED(result)) {
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+
+	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		//{ "BONE_NO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		//{ "WEIGHT",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		//{ "EDGE_FLG",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline = {};
+
+	
+	gpipeline.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
+	gpipeline.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
+
+	gpipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;//中身は0xffffffff
+
+
+	gpipeline.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+
+	gpipeline.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	gpipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;//カリングしない
+
+	gpipeline.DepthStencilState.DepthEnable = true;//深度バッファを使うぞ
+	gpipeline.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;//全て書き込み
+	gpipeline.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;//小さい方を採用
+	gpipeline.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+	gpipeline.DepthStencilState.StencilEnable = false;
+
+	gpipeline.InputLayout.pInputElementDescs = inputLayout;//レイアウト先頭アドレス
+	gpipeline.InputLayout.NumElements = _countof(inputLayout);//レイアウト配列数
+
+	gpipeline.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;//ストリップ時のカットなし
+	gpipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;//三角形で構成
+
+	gpipeline.NumRenderTargets = 1;//今は１つのみ
+	gpipeline.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;//0～1に正規化されたRGBA
+
+	gpipeline.SampleDesc.Count = 1;//サンプリングは1ピクセルにつき１
+	gpipeline.SampleDesc.Quality = 0;//クオリティは最低
+
+	//レンジ
+	CD3DX12_DESCRIPTOR_RANGE  descTblRanges[4] = {};//テクスチャと定数の２つ
+	descTblRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0);//定数[b0](ビュープロジェクション用)
+	descTblRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);//定数[b1](ワールド、ボーン用)
+	descTblRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 2);//定数[b2](マテリアル用)
+	descTblRanges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 4, 0);//テクスチャ４つ(基本とsphとspaとトゥーン)
+
+	//ルートパラメータ
+	CD3DX12_ROOT_PARAMETER rootParams[3] = {};
+	rootParams[0].InitAsDescriptorTable(1, &descTblRanges[0]);//ビュープロジェクション変換
+	rootParams[1].InitAsDescriptorTable(1, &descTblRanges[1]);//ワールド・ボーン変換
+	rootParams[2].InitAsDescriptorTable(2, &descTblRanges[2]);//マテリアル周り
+
+
+	CD3DX12_STATIC_SAMPLER_DESC samplerDescs[2] = {};
+	samplerDescs[0].Init(0);
+	samplerDescs[1].Init(1, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_CLAMP, D3D12_TEXTURE_ADDRESS_MODE_CLAMP);
+
+	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+	rootSignatureDesc.Init(3, rootParams, 2, samplerDescs, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> rootSigBlob = nullptr;
+	result = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &rootSigBlob, &errorBlob);
+	if (FAILED(result)) {
+		return result;
+	}
+	result = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(rootsignature.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		return result;
+	}
+	gpipeline.pRootSignature = rootsignature.Get();
+
+	result = device->CreateGraphicsPipelineState(&gpipeline, IID_PPV_ARGS(pipelinestate.ReleaseAndGetAddressOf()));
+	if (FAILED(result)) {
+		return result;
+	}
+	return true;
 }
 
-void Object3d::SetModel(Model* model)
+Object3d::Object3d(XMFLOAT3 position, Model* model)
 {
+	this->position = position;
 	this->model = model;
 }
+
 
 void Object3d::SetShader(const LPCWSTR & vertexShadername, const LPCSTR & vsmain, const LPCWSTR & pixelShadername, const LPCSTR & psmain)
 {
@@ -420,9 +542,25 @@ bool Object3d::Initialize()
 	// nullptrチェック
 	assert(device);
 
-	InitializeGraphicsPipeline();
 
 	HRESULT result;
+
+	//読み込むモデルデータ取得
+	Modeldata mdata;
+	mdata = model->GetModeldata();
+
+	switch (mdata)
+	{
+	case OBJ:
+		InitializeGraphicsPipeline();
+		break;
+	case PMD:
+		PMDInitilizeGraphicsPipeline();
+		break;
+	default:
+		assert(0);
+		break;
+	}
 	// 定数バッファの生成
 	result = device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), 	// アップロード可能
@@ -458,14 +596,25 @@ void Object3d::Update()
 	//	// 親オブジェクトのワールド行列を掛ける
 	//	matWorld *= parent->matWorld;
 	//}
-
+	Modeldata mdata;
+	mdata = model->GetModeldata();
 	// 定数バッファへデータ転送
 	ConstBufferDataB0* constMap = nullptr;
-	result = constBuffB0->Map(0, nullptr, (void**)&constMap);
-	//constMap->color = color;
-	constMap->mat = matWorld * Camera::matView * Camera::matProjection;	// 行列の合成
-	constBuffB0->Unmap(0, nullptr);
 
+	switch (mdata)
+	{
+	case OBJ:
+		result = constBuffB0->Map(0, nullptr, (void**)&constMap);
+		constMap->mat = matWorld * Camera::matView * Camera::matProjection;	// 行列の合成
+		constBuffB0->Unmap(0, nullptr);
+		break;
+	case PMD:
+		//PMDの行列は後で追加(今はModelクラスで行っている)
+		break;
+	default:
+		assert(0);
+		break;
+	}
 
 	//定数バッファへデータ転送(マテリアル)
 	model->Update();

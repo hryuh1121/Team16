@@ -27,12 +27,12 @@ void Bullet::Initialize()
 {
 	this->input = input;
 	model = Model::CreateFromOBJ(4, "untitled");
-	bullet = Object3d::Create({ position.x,position.y,position.z });
+	bullet = Object3d::Create({ position.x,position.y,position.z },model);
 	//position = bullet->GetPosition();
 	XMFLOAT3 scale = bullet->GetScale();
 	scale = { 5,5,5 };
 	bullet->SetScale(scale);
-	bullet->SetModel(model);
+	//bullet->SetModel(model);
 }
 
 void Bullet::Update()
