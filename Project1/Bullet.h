@@ -15,14 +15,14 @@ private:
 	//using XMFLOAT4 = DirectX::XMFLOAT4;
 	//using XMMATRIX = DirectX::XMMATRIX;
 public:
-	Bullet(Object3d *obj, XMFLOAT3& pos,XMFLOAT3& vec);
+	Bullet(Object3d *obj, XMFLOAT3& pos, XMFLOAT3& vec);
 	Bullet(XMFLOAT3& pos);
 	~Bullet();
 
 	/// <summary>
 	/// èâä˙âª
 	/// </summary>
-	void Initialize();
+	void Initialize(Model* model);
 
 	/// <summary>
 	/// ñàÉtÉåÅ[ÉÄ
@@ -43,13 +43,19 @@ public:
 
 	bool BulletSeizon();
 
+	void SetPosition(XMFLOAT3 setpos);
+
+	const XMFLOAT3& GetPosition() { return position; }
+
 private:
-	Object3d *bullet=nullptr;
-	XMFLOAT3 position ;
+	Object3d *bullet = nullptr;
+	XMFLOAT3 position;
 	Input* input = nullptr;
 	Model* model = nullptr;
 	bool bulletflag = false;
 	bool seizonFlag = false;
 	int seizonTime = 0;
-	
+public:
+	float radius = 10;//ìñÇΩÇËîªíËópîºåa
+
 };

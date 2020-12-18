@@ -3,8 +3,9 @@
 #include <cassert>
 #include "SafeDelete.h"
 #include "Camera.h"
+#include "Collision.h"
 
-void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
+void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input, Audio* audio)
 {
 	assert(input);
 	assert(dxCommon);
@@ -17,27 +18,45 @@ void GamePlay::Initialize(DirectXCommon* dxCommon, Input* input,Audio* audio)
 
 	player->Initialize(input);
 
-	enemy = new Enemy();
+	enemy = new Enemy({ 0,0,800 });
 	enemy->Initialize();
 
-	skyModel = Model::CreateFromOBJ(0,"skydome");
+	skyModel = Model::CreateFromOBJ(0, "skydome");
 	ground = Model::CreateFromOBJ(2, "ground");
 	mikuModel = Model::CreateFromPMD(3, "Model/初音ミク.pmd");//PMD読み込み
 
-	skydome = Object3d::Create({ 0,0,9200 },skyModel);
+	skydome = Object3d::Create({ 0,0,9200 }, skyModel);
 	miku = Object3d::Create({ 0,0,0 }, mikuModel);
 }
 
 void GamePlay::Update()
 {
 	player->Update();
-	enemy->Update();
+	if (enemy)
+		enemy->Update();
 	skydome->Update();
-	miku->Update();
+	//miku->Update();
+	XMFLOAT3 pos;
+	pos = miku->GetPosition();
+
 
 	if (input->TriggerKey(DIK_K))
 	{
 		audio->PlayWave("Resources/Alarm01.wav");
+	}
+
+
+	for (auto it = player->bullets.begin(); it != player->bullets.end();)
+	{
+		if (enemy)
+		{
+			if (Collision::SphereToSphere(**it, *enemy))
+			{
+				safe_delete(enemy);//当たったらエネミーを消す
+				//continue;
+			}
+		}
+		*it++;
 	}
 
 	//// カメラ移動
@@ -51,9 +70,9 @@ void GamePlay::Update()
 
 
 	//スペースキーが押されたら
-	if (input->TriggerKey(DIK_SPACE))
+	if (input->TriggerKey(DIK_R))
 	{
- 		OutputDebugStringA("ゲームプレイ\n");//出力ウインドウに「ゲームプレイ」と表示
+		OutputDebugStringA("ゲームプレイ\n");//出力ウインドウに「ゲームプレイ」と表示
 		SceneManager::Instance().LoadScene("Result");//シーンをリザルトへ
 	}
 }
@@ -63,9 +82,10 @@ void GamePlay::Draw()
 	ID3D12GraphicsCommandList* cmdList = dxCommon->GetCommandList();
 	Object3d::PreDraw(cmdList);
 	player->Draw();
-	enemy->Draw();
+	if (enemy)
+		enemy->Draw();
 	skydome->Draw();
-	miku->Draw();
+	//miku->Draw();
 	Object3d::PostDraw();
 }
 

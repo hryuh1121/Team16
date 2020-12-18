@@ -54,10 +54,10 @@ void Object3d::PreDraw(ID3D12GraphicsCommandList * cmdList)
 	//cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-Object3d* Object3d::Create(XMFLOAT3 position,Model* model)
+Object3d* Object3d::Create(XMFLOAT3 position, Model* model)
 {
 	// 3Dオブジェクトのインスタンスを生成
-	Object3d* object3d = new Object3d(position,model);
+	Object3d* object3d = new Object3d(position, model);
 	if (object3d == nullptr) {
 		return nullptr;
 	}
@@ -449,14 +449,14 @@ bool Object3d::PMDInitilizeGraphicsPipeline()
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-		//{ "BONE_NO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "BONENO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		//{ "WEIGHT",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		//{ "EDGE_FLG",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 	};
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline = {};
 
-	
+
 	gpipeline.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
 	gpipeline.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
 
@@ -534,7 +534,7 @@ Object3d::Object3d(XMFLOAT3 position, Model* model)
 
 void Object3d::SetShader(const LPCWSTR & vertexShadername, const LPCSTR & vsmain, const LPCWSTR & pixelShadername, const LPCSTR & psmain)
 {
-	InitializeGraphicsPipeline(vertexShadername,vsmain, pixelShadername,psmain);
+	InitializeGraphicsPipeline(vertexShadername, vsmain, pixelShadername, psmain);
 }
 
 bool Object3d::Initialize()
@@ -633,5 +633,5 @@ void Object3d::Draw()
 	//プリミティブ形状を設定
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	model->Draw(cmdList,constBuffB0);
+	model->Draw(cmdList, constBuffB0);
 }

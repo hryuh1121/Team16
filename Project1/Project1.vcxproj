@@ -147,14 +147,15 @@
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Bullet.cpp" />
+    <ClCompile Include="BulletCache.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Collision.cpp" />
     <ClCompile Include="DirectXCommon.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="GamePlay.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelLoder.cpp" />
     <ClCompile Include="Object3d.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Result.cpp" />
@@ -166,13 +167,14 @@
   <ItemGroup>
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Bullet.h" />
+    <ClInclude Include="BulletCache.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Collision.h" />
     <ClInclude Include="DirectXCommon.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="GamePlay.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Model.h" />
-    <ClInclude Include="ModelLoder.h" />
     <ClInclude Include="Object3d.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Result.h" />

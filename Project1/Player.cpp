@@ -20,65 +20,63 @@ void Player::Initialize(Input* input)
 {
 	this->input = input;
 
-	
-	triangleModel = Model::CreateFromOBJ(1,"triangle_mat");
+
+	triangleModel = Model::CreateFromOBJ(1, "triangle_mat");
 
 	//実体生成
 	//生成時にモデルデータも入れる
-	player = Object3d::Create({ 0,0,0 },triangleModel);
+	player = Object3d::Create({ 0,0,0 }, triangleModel);
 	//スケール初期値
 	XMFLOAT3 scale = player->GetScale();
-	scale = {20,10,20};
+	scale = { 20,10,20 };
 	player->SetScale(scale);
+
+	//弾のモデルデータ
+	bulletModel = Model::CreateFromOBJ(4, "untitled");
+
 }
 
 void Player::Update()
 {
 	playerMove();
-	playerShot();
-	//シェーダー切り替え
-	if (input->PushKey(DIK_K))
-	{
-		player->SetShader(L"BasicVertexShader.hlsl", "VSmain", L"BasicPixelShader.hlsl", "PSmain");
-	}
-	if (input->PushKey(DIK_J))
-	{
-		player->SetShader(L"OBJVertexShader.hlsl", "main", L"OBJPixelShader.hlsl", "main");
-	}
-
 	cameraPos();
 
-	if (flag)
-	{
-		bullet = new Bullet(position);
-		bullet->Initialize();
-		bullet->Update();
-	}
+
+	XMFLOAT3 pos = player->GetPosition();
+
 	player->Update();
 
-	
+	if (input->TriggerKey(DIK_SPACE))
+		Shot(pos, bulletModel);
+
+	ShotUpdate();
 }
 
 void Player::Draw()
 {
 	player->Draw();
-	if (flag)
-		bullet->Draw();
+
+	for (auto shot : bullets) {
+		shot->Draw();
+	}
 }
 
-void Player::playerShot()
+void Player::Shot(const XMFLOAT3 &pos, Model* model)
 {
-	XMFLOAT3 vec = { 0,0,-1 };
-	static int cnt = 0;
-	if (input->PushKey(DIK_SPACE))
-	{
-		cnt++;
-		flag = true;
-	}
-	else
-	{
-		cnt = 0;
-		flag = false;
+	Bullet* shot = cache.Instantiate(pos, model);
+
+	bullets.push_back(shot);
+}
+
+void Player::ShotUpdate()
+{
+	//イテレータを使用してすべての弾を処理
+	for (auto it = bullets.begin(); it != bullets.end();) {
+
+		//弾を更新
+		(*it)->Update();
+		//次のイテレータを参照
+		++it;
 	}
 }
 
@@ -86,10 +84,12 @@ void Player::playerMove()
 {
 	XMFLOAT3 pos = player->GetPosition();
 	//矢印キーでプレイヤー前後左右移動
-	if (input->PushKey(DIK_D)) {pos.x += 1;}
-	else if(input->PushKey(DIK_A)) {pos.x -= 1;}
+	if (input->PushKey(DIK_D)) { pos.x += 1; }
+	else if (input->PushKey(DIK_A)) { pos.x -= 1; }
 	if (input->PushKey(DIK_W)) { pos.y += 1; }
 	else if (input->PushKey(DIK_S)) { pos.y -= 1; }
+
+	pos.z += 1;
 
 	if (pos.x >= 42) { pos.x -= 1; }
 	else if (pos.x <= -42) { pos.x += 1; }
@@ -111,13 +111,15 @@ void Player::playerMove()
 	else if (rot.x >= -18) { rot.x -= 0.5f; }
 	player->SetRotation(rot);
 	player->SetPosition(pos);
+
+
 }
 
 void Player::cameraPos()
 {
 	XMFLOAT3 pos = player->GetPosition();
 	//注視点をプレイヤーの座標に設定
-	//Camera::PlayerTarget(pos);
+	Camera::PlayerTarget(pos);
 }
 
 

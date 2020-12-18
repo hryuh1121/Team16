@@ -2,6 +2,8 @@
 #include "Object3d.h"
 #include "Sprite.h"
 #include "Input.h"
+#include <queue>
+#include "BulletCache.h"
 
 class Bullet;
 class Player
@@ -15,7 +17,7 @@ private: // エイリアス
 	using XMFLOAT4 = DirectX::XMFLOAT4;
 	using XMMATRIX = DirectX::XMMATRIX;
 
-	Bullet* bullet;
+
 public:
 	Player();
 	~Player();
@@ -29,8 +31,11 @@ public:
 	//描画
 	void Draw();
 
-	//プレイヤー攻撃
-	void playerShot();
+	void Shot(const XMFLOAT3& pos, Model* model);
+
+	void ShotUpdate();
+
+
 
 private:
 	//プレイヤーの移動
@@ -44,8 +49,15 @@ private://メンバ変数
 	Input* input = nullptr;
 	Model* triangleModel = nullptr;
 
-	bool flag = false;
+	Model* bulletModel = nullptr;
+
+	//std::queue <Bullet*> bullets;
+
+
+	BulletCache cache;
+
 	float texNumber = 0;
 	XMFLOAT3 position = { 0,0,0 };//ローカル座標
-
+public:
+	std::vector<Bullet*> bullets;
 };

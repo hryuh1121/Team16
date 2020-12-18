@@ -103,6 +103,15 @@ void* Model::Transform::operator new(size_t size) {
 	return _aligned_malloc(size, 16);
 }
 
+//void Model::RecursiveMatrixMultipy(BoneNode* node,const DirectX::XMMATRIX& mat)
+//{
+//	_boneMatrices[node->boneIdx] = mat;
+//	for (auto& cnode : node->children)
+//	{
+//		RecursiveMatrixMultipy(cnode, _boneMatrices[cnode->boneIdx] * mat);
+//	}
+//}
+
 void Model::StaticInitialize(ID3D12Device * device)
 {
 	Model::device = device;
@@ -111,7 +120,8 @@ void Model::StaticInitialize(ID3D12Device * device)
 }
 
 
-void Model::CreateModel(UINT texNumber,const std::string& modelname)
+
+void Model::CreateModel(UINT texNumber, const std::string& modelname)
 {
 	this->modeldata = OBJ;
 	//ファイルストリーム
@@ -147,7 +157,7 @@ void Model::CreateModel(UINT texNumber,const std::string& modelname)
 			string filename;
 			line_stream >> filename;
 			//マテリアル読み込み
-			LoadMaterial(texNumber,directoryPath, filename);
+			LoadMaterial(texNumber, directoryPath, filename);
 		}
 
 		//先頭文字列がvなら頂点座標
@@ -280,6 +290,7 @@ void Model::CreateModel(UINT texNumber,const std::string& modelname)
 	//ibView.SizeInBytes = sizeof(indices);
 	ibView.SizeInBytes = sizeIB;
 }
+
 
 void Model::LoadPMDFile(const char* path)
 {
@@ -467,10 +478,95 @@ void Model::LoadPMDFile(const char* path)
 			spaResources[i] = GetTextureByPath(spaFilePath.c_str());
 		}
 	}
+	unsigned short boneNum = 0;
+	fread(&boneNum, sizeof(boneNum), 1, fp);
+#pragma pack(1)
+	//読み込み用ボーン構造体
+	struct Bone {
+		char boneName[20];//ボーン名
+		unsigned short parentNo;//親ボーン番号
+		unsigned short nextNo;//先端のボーン番号
+		unsigned char type;//ボーン種別
+		unsigned short ikBoneNo;//IKボーン番号
+		XMFLOAT3 pos;//ボーンの基準点座標
+	};
+#pragma pack()
+	vector<Bone> pmdBones(boneNum);
+	fread(pmdBones.data(), sizeof(Bone), boneNum, fp);
+
 	fclose(fp);
+
+
+	//インデックスと名前の対応関係構築のために後で使う
+	vector<string> boneNames(pmdBones.size());
+	//ボーンノードマップを作る
+	for (int idx = 0; idx < pmdBones.size(); ++idx) {
+		auto& pb = pmdBones[idx];
+		boneNames[idx] = pb.boneName;
+		auto& node = _boneNodeTable[pb.boneName];
+		node.boneIdx = idx;
+		node.startPos = pb.pos;
+	}
+	//親子関係を構築する
+	for (auto& pb : pmdBones) {
+		//親インデックスをチェック(あり得ない番号なら飛ばす)
+		if (pb.parentNo >= pmdBones.size()) {
+			continue;
+		}
+		auto parentName = boneNames[pb.parentNo];
+		_boneNodeTable[parentName].children.emplace_back(&_boneNodeTable[pb.boneName]);
+	}
+	_boneMatrices.resize(pmdBones.size());
+
+	//ボーンをすべて初期化する。
+	std::fill(_boneMatrices.begin(), _boneMatrices.end(), XMMatrixIdentity());
+
+
+
+	////VMD
+	//fseek(fp, 50, SEEK_SET);//最初の50バイト飛ばす
+	//unsigned int motionDataNum = 0;
+	//fread(&motionDataNum, sizeof(motionDataNum), 1, fp);
+
+	//struct VMDMotion {
+	//	char boneName[15]; // ボーン名
+	//	unsigned int frameNo; // フレーム番号(読込時は現在のフレーム位置を0とした相対位置)
+	//	XMFLOAT3 location; // 位置
+	//	XMFLOAT4 quaternion; // Quaternion // 回転
+	//	unsigned char bezier[64]; // [4][4][4]  ベジェ補完パラメータ
+	//};
+
+	//std::vector<VMDMotion> vmdMotionData(motionDataNum);
+	//for (auto& motion : vmdMotionData)
+	//{
+	//	fread(motion.boneName, sizeof(motion.boneName), 1, fp);//ボーン名
+	//	fread(&motion.frameNo,
+	//		sizeof(motion.frameNo)//フレーム番号
+	//		 + sizeof(motion.location)//位置(IKのときに使用予定)
+	//		 + sizeof(motion.quaternion)//クオータニオン
+	//		 + sizeof(motion.bezier), //補間ベジェデータ
+	//		1,
+	//		fp);
+	//};
+
+	////VMDのキーフレームデータから、実際に使用するキーフレームテーブルへ変換
+	//for (auto& vmdMotion : vmdMotionData) {
+	//	_motiondata[vmdMotion.boneName].emplace_back(Motion(vmdMotion.frameNo, XMLoadFloat4(&vmdMotion.quaternion)));
+	//}
+
+	//for (auto& bonemotion : _motiondata)
+	//{
+	//	auto node = _boneNodeTable[bonemotion.first];
+	//	auto& pos = node.startPos;
+	//	auto mat = XMMatrixTranslation(-pos.x, -pos.y, -pos.z)
+	//		* XMMatrixRotationQuaternion(bonemotion.second[0].quaternion)
+	//		* XMMatrixTranslation(pos.x, pos.y, pos.z);
+	//	_boneMatrices[node.boneIdx] = mat;
+	//}
 }
 
-bool Model::LoadTexture(UINT texNumber,const std::string & directoryPath, const std::string & filename)
+
+bool Model::LoadTexture(UINT texNumber, const std::string & directoryPath, const std::string & filename)
 {
 	HRESULT result = S_FALSE;
 
@@ -552,7 +648,7 @@ bool Model::LoadTexture(UINT texNumber,const std::string & directoryPath, const 
 }
 
 
-void Model::LoadMaterial(UINT texNumber,const std::string & directoryPath, const std::string & filename)
+void Model::LoadMaterial(UINT texNumber, const std::string & directoryPath, const std::string & filename)
 {
 	//ファイルストリーム
 	std::ifstream file;
@@ -607,7 +703,7 @@ void Model::LoadMaterial(UINT texNumber,const std::string & directoryPath, const
 			//テクスチャのファイル名読み込み
 			line_stream >> material.textureFilename;
 			//テクスチャ読み込み
-			LoadTexture(texNumber,directoryPath, material.textureFilename);
+			LoadTexture(texNumber, directoryPath, material.textureFilename);
 		}
 	}
 	//ファイルを閉じる
@@ -625,14 +721,14 @@ Model::Model(UINT texNumber)
 }
 
 
-Model * Model::CreateFromOBJ(UINT texNumber,const std::string& modelname)
+Model * Model::CreateFromOBJ(UINT texNumber, const std::string& modelname)
 {
 	Model* model = new Model(texNumber);
 	if (model == nullptr) {
 		return nullptr;
 	}
 
-	model->CreateModel(texNumber,modelname);
+	model->CreateModel(texNumber, modelname);
 	// 初期化
 	if (!model->Initialize()) {
 		delete model;
@@ -720,7 +816,8 @@ void Model::Update()
 	case PMD:
 
 		angle += 0.03f;
-		mappedTransform->world = XMMatrixRotationY(angle)*Camera::matView*Camera::matProjection;
+		_mappedMatrices[0] = XMMatrixRotationY(angle)*Camera::matView*Camera::matProjection;
+
 
 		result = cameraconstBuff->Map(0, nullptr, (void**)&cameraconstMap);
 		cameraconstMap->view = Camera::matView;
@@ -758,9 +855,6 @@ void Model::Draw(ID3D12GraphicsCommandList* cmdList,
 		ID3D12DescriptorHeap* mdh[] = { materialHeap.Get() };
 		//マテリアル
 		cmdList->SetDescriptorHeaps(1, mdh);
-
-		//cmdList->SetGraphicsRootConstantBufferView(0, transformBuff->GetGPUVirtualAddress());
-
 
 		auto materialH = materialHeap->GetGPUDescriptorHandleForHeapStart();
 		unsigned int idxOffset = 0;
@@ -899,7 +993,7 @@ HRESULT Model::CreateMaterialData()
 HRESULT Model::CreateTransformView()
 {
 	//GPUバッファ作成
-	auto buffSize = sizeof(Transform);
+	auto buffSize = sizeof(XMMATRIX)*(1 + _boneMatrices.size());
 	buffSize = (buffSize + 0xff)&~0xff;
 	auto result = device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
@@ -915,12 +1009,18 @@ HRESULT Model::CreateTransformView()
 	}
 
 	//マップとコピー
-	result = transformBuff->Map(0, nullptr, (void**)&mappedTransform);
+	result = transformBuff->Map(0, nullptr, (void**)&_mappedMatrices);
 	if (FAILED(result)) {
 		assert(SUCCEEDED(result));
 		return result;
 	}
-	*mappedTransform = transform;
+	_mappedMatrices[0] = transform.world;
+	auto node = _boneNodeTable["左腕"];
+	auto& pos = node.startPos;
+	_boneMatrices[node.boneIdx] = XMMatrixTranslation(-pos.x, -pos.y, -pos.z)
+		* XMMatrixRotationZ(XM_PIDIV2)
+		* XMMatrixTranslation(pos.x, pos.y, pos.z);
+	copy(_boneMatrices.begin(), _boneMatrices.end(), _mappedMatrices + 1);
 
 	//ビューの作成
 	D3D12_DESCRIPTOR_HEAP_DESC transformDescHeapDesc = {};

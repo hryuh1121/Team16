@@ -26,6 +26,12 @@ public: // サブクラス
 		XMMATRIX mat;	// ３Ｄ変換行列
 	};
 
+	struct PMDConstBufferData
+	{
+		//XMFLOAT4 color;	// 色 (RGBA)
+		XMMATRIX world;	// ３Ｄ変換行列
+	};
+
 public:
 	//パイプラインステートオブジェクト生成関数
 	static bool StaticInitialize(ID3D12Device* device, int window_width, int window_height);
@@ -34,8 +40,8 @@ public:
 	static void PreDraw(ID3D12GraphicsCommandList* cmdList);
 
 	//3Dオブジェクト生成
-	static Object3d* Create(XMFLOAT3 position,Model* model);
-	
+	static Object3d* Create(XMFLOAT3 position, Model* model);
+
 
 	//描画後処理
 	static void PostDraw();
@@ -52,13 +58,15 @@ private://静的メンバ変数
 	// ルートシグネチャ
 	ComPtr<ID3D12RootSignature> rootsignature;
 	// パイプラインステートオブジェクト
-    ComPtr<ID3D12PipelineState> pipelinestate;
+	ComPtr<ID3D12PipelineState> pipelinestate;
 
-	
+
 private://静的メンバ関数
 	//デスクリプタヒープの初期化
 	static bool InitializeDescriptorHeap();
-	
+
+	//座標変換用ビューの生成
+	HRESULT CreateTransformView();
 
 public:
 	bool InitializeGraphicsPipeline();
@@ -68,7 +76,7 @@ public:
 
 	bool PMDInitilizeGraphicsPipeline();
 
-	Object3d(XMFLOAT3 position,Model* model);
+	Object3d(XMFLOAT3 position, Model* model);
 
 
 	void SetShader(const LPCWSTR& vertexShadername, const LPCSTR& vsmain,
@@ -99,6 +107,10 @@ private:
 
 	Model* model = nullptr;
 	ComPtr<ID3D12Resource> constBuffB0; // 定数バッファ
+	PMDConstBufferData* pmdconstMap = nullptr;
+	PMDConstBufferData transform;
+	ComPtr<ID3D12DescriptorHeap> transformHeap = nullptr;//座標変換ヒープ
+	ComPtr<ID3D12Resource> pmdconstBuff; // 定数バッファ
 	XMFLOAT4 color = { 1,1,1,1 };//色
 	XMFLOAT3 scale = { 5,1,100 };//ローカルスケール
 	XMFLOAT3 rotation = { 0,0,0 };//X,Y,Z軸周りのローカル回転角

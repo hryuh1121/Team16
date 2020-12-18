@@ -14,8 +14,9 @@ private:
 	using XMFLOAT4 = DirectX::XMFLOAT4;
 	using XMMATRIX = DirectX::XMMATRIX;
 
-public :
+public:
 	Enemy();
+	Enemy(XMFLOAT3 pos);
 	~Enemy();
 
 	/// <summary>
@@ -33,8 +34,12 @@ public :
 	/// </summary>
 	void Draw();
 
+	const XMFLOAT3 GetPosition() { return position; }
+
+	void Hit();//当たった時の処理
+
 private:
-	
+
 	/// <summary>
 	/// エネミー移動
 	/// </summary>
@@ -45,5 +50,9 @@ private:
 	Model* model = nullptr;
 	Player* player = nullptr;
 
+	bool isdead = false;
+
 	XMFLOAT3 position = { 0,0,0 };
+public:
+	float radius = 10;//当たり判定用半径
 };

@@ -97,17 +97,17 @@ public: // サブクラス
 
 private://静的メンバ関数
 
-	bool LoadTexture(UINT texNumber,const std::string& directoryPath, const std::string& filename);
+	bool LoadTexture(UINT texNumber, const std::string& directoryPath, const std::string& filename);
 
 	///マテリアル読み込み
-	void LoadMaterial(UINT texNumber,const std::string& directoryPath, const std::string& filename);
+	void LoadMaterial(UINT texNumber, const std::string& directoryPath, const std::string& filename);
 	//モデル生成
-	void CreateModel(UINT texNumber,const std::string& modelname);
+	void CreateModel(UINT texNumber, const std::string& modelname);
 
 	//PMDファイル読み込み
 	void LoadPMDFile(const char* path);
 private:
-	
+
 	//デバイス
 	static ID3D12Device* device;
 	// シェーダリソースビューのハンドル(CPU)
@@ -141,7 +141,7 @@ public:
 	static void StaticInitialize(ID3D12Device* device);
 
 	//OBJ実体生成
-	static Model* CreateFromOBJ(UINT texNumber,const std::string& modelname);
+	static Model* CreateFromOBJ(UINT texNumber, const std::string& modelname);
 
 	//PMD実体生成
 	static Model* CreateFromPMD(UINT texNumber, const char* modelname);
@@ -194,6 +194,32 @@ private:
 	std::vector<ComPtr<ID3D12Resource>> toonResources;
 	ComPtr< ID3D12DescriptorHeap> materialHeap = nullptr;//マテリアルヒープ(5個ぶん)
 
+	//ボーン関連
+	DirectX::XMMATRIX* _mappedMatrices = nullptr;
+
+	std::vector<DirectX::XMMATRIX> _boneMatrices;
+
+	struct BoneNode
+	{
+		int boneIdx;//ボーンインデックス
+		DirectX::XMFLOAT3 startPos;//ボーン基準点(回転中心)
+		std::vector<BoneNode*> children;//子ノード
+	};
+	std::map<std::string, BoneNode> _boneNodeTable;
+
+
+	//モーション構造体
+	struct Motion
+	{
+		unsigned int frameNo;//アニメーション開始からのフレーム数
+		DirectX::XMVECTOR quaternion;//クォータニオン
+
+		Motion(unsigned int fno, DirectX::XMVECTOR& q)
+			: frameNo(fno), quaternion(q)
+		{}
+	};
+	std::unordered_map<std::string, std::vector<Motion>> _motiondata;
+
 	Modeldata modeldata;
 	ComPtr<ID3D12Resource> cameraconstBuff; // 定数バッファ
 
@@ -213,7 +239,7 @@ private:
 	ComPtr<ID3D12Resource> blackTex = nullptr;
 	ComPtr<ID3D12Resource> gradTex = nullptr;
 
-	
+
 	unsigned int indicesNum;//インデックス数
 	float angle = 0;
 

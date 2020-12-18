@@ -7,6 +7,11 @@ Enemy::Enemy()
 {
 }
 
+Enemy::Enemy(XMFLOAT3 pos)
+{
+	this->position = pos;
+}
+
 Enemy::~Enemy()
 {
 	safe_delete(enemy);
@@ -17,17 +22,17 @@ void Enemy::Initialize()
 {
 	model = Model::CreateFromOBJ(3, "triangle_mat2");
 
-	enemy = Object3d::Create({ 0,0,800 },model);
+	enemy = Object3d::Create({ 0,0,0 }, model);
 
 	XMFLOAT3 scale = enemy->GetScale();
 	scale = { 20,20,20 };
 	enemy->SetScale(scale);
-
+	isdead = false;
 }
 
 void Enemy::Update()
 {
-
+	enemy->SetPosition(position);
 	EnemyMove();
 	enemy->Update();
 }
@@ -37,9 +42,13 @@ void Enemy::Draw()
 	enemy->Draw();
 }
 
+void Enemy::Hit()
+{
+	isdead = true;
+}
+
 void Enemy::EnemyMove()
 {
-	XMFLOAT3 pos = enemy->GetPosition();
-	pos.z -= 1;
-	enemy->SetPosition(pos);
+	position.z -= 1;
+	enemy->SetPosition(position);
 }

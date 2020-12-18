@@ -4,7 +4,7 @@
 
 XMFLOAT3 position;
 XMFLOAT3 vecter;
-Bullet::Bullet(Object3d* obj, XMFLOAT3 & pos,XMFLOAT3& vec)
+Bullet::Bullet(Object3d* obj, XMFLOAT3 & pos, XMFLOAT3& vec)
 {
 	bullet = obj;
 	//position = pos;
@@ -23,31 +23,30 @@ Bullet::~Bullet()
 	safe_delete(model);
 }
 
-void Bullet::Initialize()
+void Bullet::Initialize(Model* model)
 {
 	this->input = input;
-	model = Model::CreateFromOBJ(4, "untitled");
-	bullet = Object3d::Create({ position.x,position.y,position.z },model);
+	bullet = Object3d::Create({ position.x,position.y,position.z }, model);
 	//position = bullet->GetPosition();
 	XMFLOAT3 scale = bullet->GetScale();
 	scale = { 5,5,5 };
 	bullet->SetScale(scale);
 	//bullet->SetModel(model);
+	bullet->SetPosition({ position.x,position.y,position.z });
 }
 
 void Bullet::Update()
 {
-	XMFLOAT3 pos = bullet->GetPosition();
 	//position = bullet->GetPosition();
 	//position = VAdd(position ,vecter);
-	pos.z++;
-	bullet->SetPosition(pos);
+	position.z += 2;
+	bullet->SetPosition(position);
 	bullet->Update();
 }
 
 void Bullet::Draw()
 {
-	bullet->Draw();	
+	bullet->Draw();
 }
 
 
@@ -63,4 +62,9 @@ XMFLOAT3 Bullet::VAdd(const XMFLOAT3 & position1, const XMFLOAT3 & position2)
 bool Bullet::BulletSeizon()
 {
 	return seizonFlag;
+}
+
+void Bullet::SetPosition(XMFLOAT3 setpos)
+{
+	bullet->SetPosition(setpos);
 }
